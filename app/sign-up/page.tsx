@@ -7,36 +7,49 @@ export default function SignUp() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess(false);
 
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
+    console.log("Sending signup request:", { name, email });
+
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
+      console.log("Response:", { status: res.status, data });
 
       if (!res.ok) {
         setError(data.error || "حدث خطأ أثناء إنشاء الحساب");
+        setLoading(false);
         return;
       }
 
-      // تسجيل الدخول التلقائي بعد إنشاء الحساب
-      router.push("/");
-      router.refresh();
+      setSuccess(true);
+      // تأخير بسيط ثم التوجيه
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 1000);
     } catch (err) {
-      setError("حدث خطأ في الاتصال بالخادم");
+      console.error("Fetch error:", err);
+      setError("حدث خطأ في الاتصال بالخادم. تأكد من اتصالك بالإنترنت.");
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -69,12 +82,27 @@ export default function SignUp() {
           <div style={{ 
             background: '#fee', 
             color: '#c00', 
-            padding: '10px', 
+            padding: '12px', 
             borderRadius: '8px',
             marginBottom: '15px',
-            textAlign: 'center'
+            textAlign: 'center',
+            border: '1px solid #fcc'
           }}>
-            {error}
+            ❌ {error}
+          </div>
+        )}
+
+        {success && (
+          <div style={{ 
+            background: '#efe', 
+            color: '#0a0', 
+            padding: '12px', 
+            borderRadius: '8px',
+            marginBottom: '15px',
+            textAlign: 'center',
+            border: '1px solid #cfc'
+          }}>
+            ✅ تم إنشاء الحساب بنجاح! جاري تحويلك...
           </div>
         )}
 
@@ -90,6 +118,7 @@ export default function SignUp() {
               fontSize: '1rem'
             }}
             required
+            disabled={loading || success}
           />
           <input 
             type="email" 
@@ -102,6 +131,7 @@ export default function SignUp() {
               fontSize: '1rem'
             }}
             required
+            disabled={loading || success}
           />
           <input 
             type="password" 
@@ -114,21 +144,22 @@ export default function SignUp() {
               fontSize: '1rem'
             }}
             required
+            disabled={loading || success}
           />
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={loading || success}
             style={{ 
               padding: '12px', 
-              background: loading ? '#ccc' : '#28a745', 
+              background: loading || success ? '#ccc' : '#28a745', 
               color: 'white', 
               border: 'none', 
               borderRadius: '8px',
               fontSize: '1.1rem',
-              cursor: loading ? 'not-allowed' : 'pointer'
+              cursor: loading || success ? 'not-allowed' : 'pointer'
             }}
           >
-            {loading ? 'جاري الإنشاء...' : 'إنشاء حساب'}
+            {loading ? 'جاري الإنشاء...' : success ? 'تم ✅' : 'إنشاء حساب'}
           </button>
         </form>
         <p style={{ marginTop: '20px', textAlign: 'center', color: '#666' }}>
