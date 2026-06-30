@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <main style={{ 
+    <div style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       alignItems: 'center', 
@@ -15,7 +15,7 @@ export default function Home() {
         🏠 مرحباً بك في منصة عقارات
       </h1>
       <p style={{ fontSize: '1.2rem', color: '#666', marginBottom: '30px' }}>
-        منصة العقارات العربية - قيد التطوير
+        منصة العقارات العربية - نسخة ويب
       </p>
       <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'center' }}>
         <a href="/properties" style={{ 
@@ -39,6 +39,6 @@ export default function Home() {
           تسجيل الدخول
         </a>
       </div>
-    </main>
+    </div>
   );
 }
