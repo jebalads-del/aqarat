@@ -1,7 +1,7 @@
 "use server";
 
-import { db } from "@/lib/db";
-import { user, session, account, verification } from "@/lib/db/schema"; // تأكد من وجود هذه الجداول
+import { db } from "../../lib/db";
+import { user, session } from "../../lib/db/schema";
 import { eq } from "drizzle-orm";
 import { hash, verify } from "@node-rs/argon2";
 import { generateId } from "lucia";
@@ -32,12 +32,11 @@ export async function signUp(formData: FormData) {
     hashedPassword,
   });
 
-  // إنشاء جلسة (Session) لتسجيل الدخول التلقائي
   const sessionId = generateId(15);
   await db.insert(session).values({
     id: sessionId,
     userId,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 يوم
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
   });
 
   cookies().set("session", sessionId, {
