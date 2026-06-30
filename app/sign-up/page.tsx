@@ -1,6 +1,47 @@
-import { signUp } from "@/app/actions/auth";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "حدث خطأ أثناء إنشاء الحساب");
+        return;
+      }
+
+      // تسجيل الدخول التلقائي بعد إنشاء الحساب
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      setError("حدث خطأ في الاتصال بالخادم");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -23,7 +64,21 @@ export default function SignUp() {
         <h1 style={{ fontSize: '1.8rem', marginBottom: '20px', textAlign: 'center' }}>
           ✨ إنشاء حساب جديد
         </h1>
-        <form action={signUp} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        
+        {error && (
+          <div style={{ 
+            background: '#fee', 
+            color: '#c00', 
+            padding: '10px', 
+            borderRadius: '8px',
+            marginBottom: '15px',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <input 
             type="text" 
             name="name"
@@ -62,17 +117,18 @@ export default function SignUp() {
           />
           <button 
             type="submit" 
+            disabled={loading}
             style={{ 
               padding: '12px', 
-              background: '#28a745', 
+              background: loading ? '#ccc' : '#28a745', 
               color: 'white', 
               border: 'none', 
               borderRadius: '8px',
               fontSize: '1.1rem',
-              cursor: 'pointer'
+              cursor: loading ? 'not-allowed' : 'pointer'
             }}
           >
-            إنشاء حساب
+            {loading ? 'جاري الإنشاء...' : 'إنشاء حساب'}
           </button>
         </form>
         <p style={{ marginTop: '20px', textAlign: 'center', color: '#666' }}>
