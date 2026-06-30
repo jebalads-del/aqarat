@@ -20,19 +20,14 @@ export default function SignUp() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    console.log("Sending signup request:", { name, email });
-
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
-      console.log("Response:", { status: res.status, data });
 
       if (!res.ok) {
         setError(data.error || "حدث خطأ أثناء إنشاء الحساب");
@@ -41,13 +36,11 @@ export default function SignUp() {
       }
 
       setSuccess(true);
-      // تأخير بسيط ثم التوجيه
       setTimeout(() => {
         router.push("/");
         router.refresh();
       }, 1000);
     } catch (err) {
-      console.error("Fetch error:", err);
       setError("حدث خطأ في الاتصال بالخادم. تأكد من اتصالك بالإنترنت.");
       setLoading(false);
     } finally {
