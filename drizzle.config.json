@@ -1,0 +1,8 @@
+{
+  "dialect": "postgresql",
+  "schema": "./lib/db/schema.ts",
+  "out": "./drizzle",
+  "dbCredentials": {
+    "url": "postgresql://neondb_owner:YOUR_PASSWORD@ep-hidden-wildflower-at7ny6g4-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require"
+  }
+}
