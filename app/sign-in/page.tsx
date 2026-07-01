@@ -1,3 +1,5 @@
+import { signIn } from "../actions/auth";
+
 export default function SignIn() {
   return (
     <div style={{ 
@@ -21,9 +23,11 @@ export default function SignIn() {
         <h1 style={{ fontSize: '1.8rem', marginBottom: '20px', textAlign: 'center' }}>
           🔐 تسجيل الدخول
         </h1>
-        <form style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+
+        <form action={signIn} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <input 
             type="email" 
+            name="email"
             placeholder="البريد الإلكتروني" 
             style={{ 
               padding: '12px', 
@@ -35,6 +39,7 @@ export default function SignIn() {
           />
           <input 
             type="password" 
+            name="password"
             placeholder="كلمة المرور" 
             style={{ 
               padding: '12px', 
@@ -59,6 +64,7 @@ export default function SignIn() {
             دخول
           </button>
         </form>
+
         <p style={{ marginTop: '20px', textAlign: 'center', color: '#666' }}>
           ليس لديك حساب؟ <a href="/sign-up" style={{ color: '#0070f3' }}>إنشاء حساب</a>
         </p>
