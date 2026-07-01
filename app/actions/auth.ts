@@ -14,44 +14,59 @@ function generateId() {
 }
 
 export async function signIn(formData: FormData) {
+  // 1. استخراج البيانات من النموذج
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
+  // 2. التحقق من صحة الإدخال
   if (!email || !password) {
     return { error: "البريد الإلكتروني وكلمة المرور مطلوبان" };
   }
 
-  const existingUser = await db.select().from(user).where(eq(user.email, email));
-  if (existingUser.length === 0) {
-    return { error: "البريد الإلكتروني غير موجود" };
+  try {
+    // 3. البحث عن المستخدم في قاعدة البيانات
+    const existingUser = await db.select().from(user).where(eq(user.email, email));
+    
+    if (existingUser.length === 0) {
+      return { error: "البريد الإلكتروني غير موجود" };
+    }
+
+    const userData = existingUser[0];
+
+    // 4. التحقق من كلمة المرور باستخدام Argon2
+    const validPassword = await verify(userData.hashedPassword, password);
+    if (!validPassword) {
+      return { error: "كلمة المرور غير صحيحة" };
+    }
+
+    // 5. إنشاء جلسة جديدة
+    const sessionId = generateId();
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30); // 30 يوم
+
+    // 6. تخزين الجلسة في قاعدة البيانات
+    await db.insert(session).values({
+      id: sessionId,
+      userId: userData.id,
+      expiresAt,
+    });
+
+    // 7. تعيين الكوكي (مع خيارات واضحة)
+    cookies().set({
+      name: "session",
+      value: sessionId,
+      httpOnly: true,
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: "lax",
+    });
+
+    // 8. التوجيه إلى الصفحة الرئيسية
+    redirect("/");
+  } catch (error) {
+    console.error("❌ Signin error:", error);
+    return { error: "حدث خطأ في الخادم أثناء تسجيل الدخول" };
   }
-
-  const userData = existingUser[0];
-  const validPassword = await verify(userData.hashedPassword, password);
-  if (!validPassword) {
-    return { error: "كلمة المرور غير صحيحة" };
-  }
-
-  const sessionId = generateId();
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-
-  await db.insert(session).values({
-    id: sessionId,
-    userId: userData.id,
-    expiresAt,
-  });
-
-  cookies().set({
-    name: "session",
-    value: sessionId,
-    httpOnly: true,
-    path: "/",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 30,
-    sameSite: "lax",
-  });
-
-  redirect("/");
 }
 
 export async function signOut() {
