@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   console.log("📨 Received signup request");
   
   try {
-    // التحقق من وجود DATABASE_URL
+    // 1. التحقق من وجود متغير البيئة
     if (!process.env.DATABASE_URL) {
       console.error("❌ DATABASE_URL is not defined");
       return NextResponse.json(
@@ -24,11 +24,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 2. قراءة البيانات من الطلب
     const body = await req.json();
     console.log("📦 Request body:", { name: body.name, email: body.email });
 
     const { name, email, password } = body;
 
+    // 3. التحقق من صحة البيانات
     if (!name || !email || !password) {
       console.error("❌ Missing fields");
       return NextResponse.json(
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // التحقق من وجود المستخدم
+    // 4. التحقق من وجود المستخدم مسبقاً
     console.log("🔍 Checking if user exists...");
     const existingUser = await db.select().from(user).where(eq(user.email, email));
     if (existingUser.length > 0) {
@@ -48,21 +50,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // تشفير كلمة المرور
+    // 5. تشفير كلمة المرور
     console.log("🔐 Hashing password...");
     const hashedPassword = await hash(password);
     const userId = generateId();
 
-    // إنشاء المستخدم
+    // 6. إنشاء المستخدم في قاعدة البيانات
     console.log("👤 Creating user...");
-    await db.insert(user).values({
+    const result = await db.insert(user).values({
       id: userId,
       email,
       name,
       hashedPassword,
-    });
+    }).returning(); // إضافة .returning() للحصول على البيانات المُدرجة
 
-    // إنشاء الجلسة
+    console.log("✅ User created:", result);
+
+    // 7. إنشاء جلسة للمستخدم
     console.log("🔑 Creating session...");
     const sessionId = generateId();
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
@@ -72,7 +76,7 @@ export async function POST(req: NextRequest) {
       expiresAt,
     });
 
-    // تعيين الكوكيز بالطريقة الصحيحة
+    // 8. تعيين الكوكي
     console.log("🍪 Setting cookie...");
     cookies().set({
       name: "session",
@@ -85,7 +89,7 @@ export async function POST(req: NextRequest) {
     });
 
     console.log("✅ Signup successful!");
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, user: result[0] });
   } catch (error) {
     console.error("❌ Signup error:", error);
     return NextResponse.json(
