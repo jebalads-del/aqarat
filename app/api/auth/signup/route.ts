@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "../../../lib/db";
-import { user, session } from "../../../lib/db/schema";
+import { db } from "../../../lib-core/db";
+import { user, session } from "../../../lib-core/db/schema";
 import { eq } from "drizzle-orm";
 import { hash } from "@node-rs/argon2";
 import { cookies } from "next/headers";
