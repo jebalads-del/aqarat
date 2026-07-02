@@ -1,7 +1,6 @@
 "use server";
-
-import { db } from "../../lib-core/db";
-import { user, session } from "../../lib-core/db/schema";
+import { db } from "@/lib-core/db";
+import { user, session } from "@/lib-core/db/schema";
 import { eq } from "drizzle-orm";
 import { verify } from "@node-rs/argon2";
 import { cookies } from "next/headers";
